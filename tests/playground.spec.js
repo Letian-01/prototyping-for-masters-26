@@ -213,6 +213,8 @@ test("stick figure widget renders and animates on click", async ({ page }) => {
   // Clicking triggers jump animation and particle reaction
   await stickFigureSvg.click();
   await expect(widget.locator(".particle")).toBeVisible();
+});
+
 test("smile widget by Yurou Zhou (Reign) renders and changes moods on interaction", async ({ page }) => {
   await page.goto("/playground/");
   await expect(page.getByText("Yurou Zhou (Reign)", { exact: true })).toBeVisible();
@@ -235,4 +237,83 @@ test("smile widget by Yurou Zhou (Reign) renders and changes moods on interactio
 
   // Moving mouse tracks eyes without error
   await page.mouse.move(200, 200);
+});
+
+test("envelope widget opens, cycles notes, and seals", async ({ page }) => {
+  await page.goto("/playground/");
+  await expect(page.getByText("Minju Jang", { exact: true })).toBeVisible();
+  await expect(page.getByText("Interactive Envelope", { exact: true })).toBeVisible();
+
+  const minjuWidget = page.locator(".widget").filter({ hasText: "Minju Jang" });
+  await expect(minjuWidget).toBeVisible();
+
+  const seal = minjuWidget.locator(".wax-seal");
+  await expect(seal).toBeVisible();
+
+  // Open the envelope by clicking the wax seal
+  await seal.click();
+  const envelope = minjuWidget.locator(".envelope");
+  await expect(envelope).toHaveClass(/is-open/);
+
+  // Check the initial note text
+  const noteText = minjuWidget.locator(".note-text");
+  await expect(noteText).toContainText("Hello from the canvas!");
+
+  // Cycle to next note
+  const nextBtn = minjuWidget.locator(".btn-next");
+  await nextBtn.click();
+  await expect(noteText).toContainText("Prototyping principle");
+
+  // Seal the envelope
+  const closeBtn = minjuWidget.locator(".btn-close");
+  await closeBtn.click();
+  await expect(envelope).not.toHaveClass(/is-open/);
+});
+
+test("envelope widget allows writing on the envelope and writing custom letter notes", async ({ page }) => {
+  await page.goto("/playground/");
+  const minjuWidget = page.locator(".widget").filter({ hasText: "Minju Jang" });
+  await expect(minjuWidget).toBeVisible();
+
+  // Test writing on the envelope front
+  const toInput = minjuWidget.locator(".env-to-input");
+  const noteInput = minjuWidget.locator(".env-note-input");
+  await expect(toInput).toBeVisible();
+  await expect(noteInput).toBeVisible();
+
+  await toInput.fill("Alice");
+  await expect(toInput).toHaveValue("Alice");
+
+  await noteInput.fill("For your eyes only 💌");
+  await expect(noteInput).toHaveValue("For your eyes only 💌");
+
+  // Open the envelope
+  const seal = minjuWidget.locator(".wax-seal");
+  await seal.click();
+  const envelope = minjuWidget.locator(".envelope");
+  await expect(envelope).toHaveClass(/is-open/);
+
+  // Write a custom message on the letter card
+  const writeBtn = minjuWidget.locator(".btn-write");
+  await writeBtn.click();
+
+  const customInput = minjuWidget.locator(".custom-input");
+  await expect(customInput).toBeVisible();
+  await customInput.fill("Greetings from Alice! This is my prototype note.");
+
+  // Click Done to finish writing
+  await writeBtn.click();
+
+  const noteText = minjuWidget.locator(".note-text");
+  await expect(noteText).toHaveText("Greetings from Alice! This is my prototype note.");
+
+  // Seal the envelope and check that it closed properly
+  const closeBtn = minjuWidget.locator(".btn-close");
+  await closeBtn.click();
+  await expect(envelope).not.toHaveClass(/is-open/);
+
+  // Re-open and verify our custom note persisted
+  await seal.click();
+  await expect(envelope).toHaveClass(/is-open/);
+  await expect(noteText).toHaveText("Greetings from Alice! This is my prototype note.");
 });
