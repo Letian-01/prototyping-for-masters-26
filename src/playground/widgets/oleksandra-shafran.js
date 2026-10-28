@@ -1,11 +1,12 @@
 import griffonUrl from "./oleksandra-shafran-griffon.webp";
+import kissUrl from "./oleksandra-shafran-kiss.webp";
 
 export default {
   student: "Oleksandra Shafran",
-  title: "Griffon",
+  title: "Griffon smooch",
   frame: false,
   rotate: 4,
-  width: 220,
+  width: 370,
   height: 324,
   mount(root) {
     const style = document.createElement("style");
@@ -25,8 +26,15 @@ export default {
         width: 100%;
         height: 100%;
         overflow: visible;
-        transform-origin: 50% 90%;
         user-select: none;
+      }
+      .dog {
+        transform-box: view-box;
+        transform-origin: 413px 1100px;
+      }
+      .me {
+        transform-box: view-box;
+        transform-origin: 1000px 1000px;
       }
       .jaw,
       .mouth {
@@ -45,20 +53,38 @@ export default {
         transform: scaleY(1);
         transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-      .is-wiggling svg {
+      .is-wiggling .dog {
         animation: wiggle 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
       }
+      .is-wiggling .me {
+        animation: smooch 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .heart {
+        position: absolute;
+        left: 42%;
+        top: 46%;
+        font-size: 22px;
+        line-height: 1;
+        color: #ff4f7b;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .is-barking .heart {
+        animation: float 1100ms ease-out forwards;
+      }
+      .is-barking .heart:nth-of-type(2) { animation-delay: 120ms; --drift: -26px; }
+      .is-barking .heart:nth-of-type(3) { animation-delay: 240ms; --drift: 18px; }
       .bark {
         position: absolute;
         top: 4%;
-        right: -8%;
+        left: -6%;
         padding: 4px 10px;
         border-radius: 999px;
         background: #1d1a4a;
         color: #fff;
         font: 600 16px/1.2 "Faculty Glyphic", sans-serif;
         opacity: 0;
-        transform: translateY(6px) rotate(8deg);
+        transform: translateY(6px) rotate(-8deg);
         pointer-events: none;
       }
       .is-barking .bark {
@@ -72,22 +98,33 @@ export default {
         100% { transform: rotate(0) scale(1); }
       }
       @keyframes bark {
-        0% { opacity: 0; transform: translateY(6px) rotate(8deg); }
-        20% { opacity: 1; transform: translateY(0) rotate(8deg); }
+        0% { opacity: 0; transform: translateY(6px) rotate(-8deg); }
+        20% { opacity: 1; transform: translateY(0) rotate(-8deg); }
         75% { opacity: 1; }
-        100% { opacity: 0; transform: translateY(-8px) rotate(8deg); }
+        100% { opacity: 0; transform: translateY(-8px) rotate(-8deg); }
+      }
+      @keyframes smooch {
+        0% { transform: translate(0, 0) rotate(0); }
+        35% { transform: translate(-22px, 6px) rotate(-4deg); }
+        100% { transform: translate(0, 0) rotate(0); }
+      }
+      @keyframes float {
+        0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+        20% { opacity: 1; }
+        100% { opacity: 0; transform: translate(var(--drift, 4px), -70px) scale(1.2); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .is-wiggling svg { animation: none; }
+        .is-wiggling .dog,
+        .is-wiggling .me { animation: none; }
       }
     `;
 
     const button = document.createElement("button");
     button.type = "button";
-    button.setAttribute("aria-label", "Griffon dog in a sweater. Click to say hi.");
+    button.setAttribute("aria-label", "Oleksandra kissing a griffon dog in a sweater. Click for a smooch.");
     // The lower jaw is cut out of the photo along the line above the teeth and dropped to open the mouth.
     button.innerHTML = `
-      <svg viewBox="0 0 827 1219" aria-hidden="true">
+      <svg viewBox="0 0 1390 1219" aria-hidden="true">
         <defs>
           <clipPath id="jaw-shape">
             <path d="M290 668 L320 650 L400 644 L470 650 L500 668 L560 720 L610 800 L600 900 L500 975 L400 985 L300 960 L230 880 L220 780 L250 710 Z" />
@@ -100,6 +137,7 @@ export default {
             <feGaussianBlur stdDeviation="3" />
           </filter>
         </defs>
+        <g class="dog">
         <image href="${griffonUrl}" width="827" height="1219" />
         <g class="mouth" filter="url(#mouth-soften)">
           <path d="M318 662 Q400 636 484 662 Q480 712 400 716 Q320 712 318 662 Z" fill="url(#mouth-inside)" />
@@ -108,7 +146,12 @@ export default {
         <g class="jaw">
           <image href="${griffonUrl}" width="827" height="1219" clip-path="url(#jaw-shape)" />
         </g>
+        </g>
+        <g class="me">
+          <image href="${kissUrl}" x="581" y="131" width="800" height="873" />
+        </g>
       </svg>
+      <span class="heart">♥</span><span class="heart">♥</span><span class="heart">♥</span>
       <span class="bark">woof!</span>
     `;
     root.append(style, button);
@@ -119,8 +162,8 @@ export default {
       void button.getBoundingClientRect();
       button.classList.add("is-wiggling", "is-barking");
       clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => button.classList.remove("is-barking"), 900);
+      closeTimer = setTimeout(() => button.classList.remove("is-barking"), 1400);
     });
-    button.querySelector("svg").addEventListener("animationend", () => button.classList.remove("is-wiggling"));
+    button.querySelector(".dog").addEventListener("animationend", () => button.classList.remove("is-wiggling"));
   },
 };
