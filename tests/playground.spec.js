@@ -186,6 +186,21 @@ test("framed widget caption dragging moves widget while button remains clickable
   await expect(btn).toHaveText("Count: 1");
 });
 
+test("Xuanyi Meng's widget displays diary image and triggers flash on click", async ({ page }) => {
+  await page.goto("/playground/");
+  await expect(page.getByText("Xuanyi Meng", { exact: true })).toBeVisible();
+  await expect(page.getByText("Dear diary", { exact: true })).toBeVisible();
+
+  const diary = page.getByRole("button", { name: "Dear diary, click for flash effect" });
+  await expect(diary).toBeVisible();
+
+  const img = diary.locator("img.diary-image");
+  await expect(img).toBeVisible();
+
+  await diary.click();
+  await expect(diary.locator(".flash-overlay")).toHaveClass(/active/);
+});
+
 test("stick figure widget renders and animates on click", async ({ page }) => {
   await page.goto("/playground/");
   const widget = page.locator(".widget").filter({ hasText: "Stick Figure" });
