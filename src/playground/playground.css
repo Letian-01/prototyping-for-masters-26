@@ -68,6 +68,7 @@ html.is-playground body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  contain: layout paint;
   touch-action: none;
   cursor: grab;
   background-image: radial-gradient(color-mix(in srgb, currentColor 32%, transparent) 1px, transparent 1px);
@@ -88,6 +89,9 @@ html.is-playground body {
   top: 0;
   left: 0;
   transform-origin: 0 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
   pointer-events: none;
 }
 
@@ -96,6 +100,7 @@ html.is-playground body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  contain: layout style;
   border: 1px solid var(--line);
   background: var(--paper);
   color: var(--ink);
