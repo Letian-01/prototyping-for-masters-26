@@ -241,11 +241,10 @@ test("smile widget by Yurou Zhou (Reign) renders and changes moods on interactio
 
 test("envelope widget opens, cycles notes, and seals", async ({ page }) => {
   await page.goto("/playground/");
-  await expect(page.getByText("Minju Jang", { exact: true })).toBeVisible();
-  await expect(page.getByText("Interactive Envelope", { exact: true })).toBeVisible();
-
-  const minjuWidget = page.locator(".widget").filter({ hasText: "Minju Jang" });
+  const minjuWidget = page.locator(".widget").filter({ hasText: "Interactive Envelope" });
   await expect(minjuWidget).toBeVisible();
+  await expect(minjuWidget.locator(".widget-student")).toHaveText("Minju Jang");
+  await expect(page.getByText("Interactive Envelope", { exact: true })).toBeVisible();
 
   const seal = minjuWidget.locator(".wax-seal");
   await expect(seal).toBeVisible();
@@ -272,7 +271,7 @@ test("envelope widget opens, cycles notes, and seals", async ({ page }) => {
 
 test("envelope widget allows writing on the envelope and writing custom letter notes", async ({ page }) => {
   await page.goto("/playground/");
-  const minjuWidget = page.locator(".widget").filter({ hasText: "Minju Jang" });
+  const minjuWidget = page.locator(".widget").filter({ hasText: "Interactive Envelope" });
   await expect(minjuWidget).toBeVisible();
 
   // Test writing on the envelope front
@@ -316,4 +315,35 @@ test("envelope widget allows writing on the envelope and writing custom letter n
   await seal.click();
   await expect(envelope).toHaveClass(/is-open/);
   await expect(noteText).toHaveText("Greetings from Alice! This is my prototype note.");
+});
+
+test("3D Savvy the Pigeon widget renders, rotates on hover, and reacts on click", async ({ page }) => {
+  await page.goto("/playground/");
+  const savvyWidget = page.locator(".widget").filter({ hasText: "3D Savvy the Pigeon" });
+  await expect(savvyWidget).toBeVisible();
+  await expect(savvyWidget.locator(".widget-student")).toHaveText("Minju Jang");
+
+  // Canvas exists and is rendered
+  const canvas = savvyWidget.locator("canvas");
+  await expect(canvas).toBeVisible();
+
+  // Hover over canvas to rotate Savvy in 3D
+  await canvas.hover();
+
+  // Click on Savvy to trigger speech bubble and reaction
+  await canvas.click();
+  const bubble = savvyWidget.locator(".speech-bubble");
+  await expect(bubble).toHaveClass(/is-visible/);
+
+  // Toggle photo view
+  const toggleBtn = savvyWidget.locator(".btn-toggle-photo");
+  await expect(toggleBtn).toBeVisible();
+  await toggleBtn.click();
+
+  const photoImg = savvyWidget.locator(".photo-img");
+  await expect(photoImg).toBeVisible();
+
+  // Flip back to 3D view
+  await toggleBtn.click();
+  await expect(canvas).toBeVisible();
 });
