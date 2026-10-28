@@ -212,6 +212,8 @@ test("stick figure widget renders and animates on click", async ({ page }) => {
   // Clicking triggers jump animation and particle reaction
   await stickFigureSvg.click();
   await expect(widget.locator(".particle")).toBeVisible();
+});
+
 test("smile widget by Yurou Zhou (Reign) renders and changes moods on interaction", async ({ page }) => {
   await page.goto("/playground/");
   await expect(page.getByText("Yurou Zhou (Reign)", { exact: true })).toBeVisible();
@@ -235,3 +237,27 @@ test("smile widget by Yurou Zhou (Reign) renders and changes moods on interactio
   // Moving mouse tracks eyes without error
   await page.mouse.move(200, 200);
 });
+
+test("Ryan Page's sparkling pixel rainbow widget renders and clouds form on hover", async ({ page }) => {
+  await page.goto("/playground/");
+  await expect(page.getByText("Ryan Page", { exact: true })).toBeVisible();
+  await expect(page.getByText("Pixel Rainbow", { exact: true })).toBeVisible();
+
+  const widget = page.locator(".widget").filter({ hasText: "Pixel Rainbow" });
+  await expect(widget).toBeVisible();
+
+  const rainbowSvg = widget.getByRole("img", { name: "Sparkling pixel rainbow" });
+  await expect(rainbowSvg).toBeVisible();
+
+  // Clouds are attached and form on hover
+  const cloudsGroup = widget.locator(".clouds-layer");
+  await expect(cloudsGroup).toBeAttached();
+
+  await rainbowSvg.hover();
+  await expect(cloudsGroup).toHaveClass(/is-active/);
+
+  // Sparkles are present
+  const sparkles = widget.locator(".sparkle");
+  expect(await sparkles.count()).toBeGreaterThan(0);
+});
+
