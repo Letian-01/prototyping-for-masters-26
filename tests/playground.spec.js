@@ -196,6 +196,8 @@ test("stick figure widget renders and animates on click", async ({ page }) => {
   // Clicking triggers jump animation and particle reaction
   await stickFigureSvg.click();
   await expect(widget.locator(".particle")).toBeVisible();
+});
+
 test("smile widget by Yurou Zhou (Reign) renders and changes moods on interaction", async ({ page }) => {
   await page.goto("/playground/");
   await expect(page.getByText("Yurou Zhou (Reign)", { exact: true })).toBeVisible();
@@ -219,3 +221,20 @@ test("smile widget by Yurou Zhou (Reign) renders and changes moods on interactio
   // Moving mouse tracks eyes without error
   await page.mouse.move(200, 200);
 });
+
+test("peepo jam widget by Shuotong Huang (Tiffany) renders and animates on click", async ({ page }) => {
+  await page.goto("/playground/");
+  await expect(page.getByText("Shuotong Huang (Tiffany)", { exact: true }).last()).toBeVisible();
+  await expect(page.getByText("Peepo Jam", { exact: true })).toBeVisible();
+
+  const peepoBtn = page.getByRole("button", { name: /Peepo Jam/i });
+  await expect(peepoBtn).toBeVisible();
+
+  const peepoImg = page.getByRole("img", { name: /Peepo with hands on head/i });
+  await expect(peepoImg).toBeVisible();
+
+  // Clicking triggers fever mode animation, phrase update, and particles
+  await peepoBtn.click();
+  await expect(peepoBtn).toHaveClass(/is-fever/);
+});
+
