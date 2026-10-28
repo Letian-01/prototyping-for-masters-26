@@ -309,6 +309,9 @@ export function mountPlayground(app, widgets) {
     const viewW = Math.max(viewport.clientWidth - pad * 2, 1);
     const viewH = Math.max(viewport.clientHeight - pad * 2, 1);
     scale = clamp(Math.min(viewW / boundsW, viewH / boundsH, 1), MIN_SCALE, MAX_SCALE);
+    x = boundsW * scale > viewW ? pad - minX * scale : (viewport.clientWidth - boundsW * scale) / 2 - minX * scale;
+    y = boundsH * scale > viewH ? pad - minY * scale : (viewport.clientHeight - boundsH * scale) / 2 - minY * scale;
+    render();
     x = (viewport.clientWidth - boundsW * scale) / 2 - minX * scale;
     y = (viewport.clientHeight - boundsH * scale) / 2 - minY * scale;
     render({ chrome: "now" });
