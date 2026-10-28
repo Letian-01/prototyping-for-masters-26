@@ -1,8 +1,8 @@
 const defaultNotes = [
-  "Hello from the canvas! May your prototypes be bold, your bugs few, and your ideas endless. ✉️✨ — Minju",
-  "Prototyping principle: Build it quick, test it with real hands, and let surprise guide the next revision.",
-  "Canvas secret: You can drag any widget around, zoom with scroll, and reset view anytime.",
-  "Leave a secret note! Click 'Write' below to pen your own message on this card.",
+  "Hello from the canvas! May your prototypes be full of joy, sweet surprises, and endless creativity 🌸✨",
+  "Prototyping principle: Build it cute, test it with kind hands, and let playful magic guide the next revision! 🍓💭",
+  "Canvas secret: You can drag any widget around, sprinkle ideas everywhere, and zoom into the details! 🐰⭐",
+  "Leave a secret note! Click 'Write' to send warm hugs and cute vibes across the canvas ♡💌",
 ];
 
 const storage = {
@@ -29,8 +29,8 @@ export default {
   width: 320,
   height: 260,
   mount(root) {
-    const savedTo = storage.get("to", "Fellow Prototyper");
-    const savedEnvNote = storage.get("env_note", "Special Delivery ✦");
+    const savedTo = storage.get("to", "My Favorite Person ♡");
+    const savedEnvNote = storage.get("env_note", "Sending cute vibes! 🌸✨");
     const savedCustomNote = storage.get("custom_note", "");
 
     const notes = [...defaultNotes];
@@ -41,15 +41,16 @@ export default {
     const style = document.createElement("style");
     style.textContent = `
       :host {
-        --env-bg: color-mix(in srgb, var(--paper) 90%, var(--ink) 10%);
-        --env-lining: color-mix(in srgb, var(--paper) 80%, var(--ink) 20%);
-        --env-flap-side: color-mix(in srgb, var(--paper) 87%, var(--ink) 13%);
-        --env-flap-bottom: color-mix(in srgb, var(--paper) 83%, var(--ink) 17%);
-        --env-flap-top: color-mix(in srgb, var(--paper) 85%, var(--ink) 15%);
-        --card-bg: color-mix(in srgb, var(--paper) 97%, var(--ink) 3%);
-        --card-border: color-mix(in srgb, var(--ink) 14%, transparent);
-        --seal-red: #c93b2b;
-        --seal-shadow: color-mix(in srgb, var(--ink) 24%, transparent);
+        --env-bg: #ffeaf0;
+        --env-lining: #ffd5e2;
+        --env-flap-side: #ffdbe7;
+        --env-flap-bottom: #ffd0de;
+        --env-flap-top: #fed9e6;
+        --card-bg: #fffbfe;
+        --card-border: #ffb6cd;
+        --seal-pink: #ff4d79;
+        --seal-gradient: radial-gradient(circle at 35% 35%, #ff8ca6, #ff4d79 70%, #d81e4d);
+        --seal-shadow: rgba(220, 40, 90, 0.25);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -76,8 +77,8 @@ export default {
         width: 250px;
         height: 136px;
         background: var(--env-bg);
-        border-radius: 4px;
-        box-shadow: 0 8px 20px var(--seal-shadow);
+        border-radius: 6px;
+        box-shadow: 0 8px 24px var(--seal-shadow), 0 2px 6px rgba(0, 0, 0, 0.05);
         cursor: pointer;
       }
 
@@ -85,19 +86,18 @@ export default {
         cursor: default;
       }
 
-      /* Inner envelope lining pattern */
+      /* Inner envelope lining polka-dot pattern */
       .env-lining {
         position: absolute;
         inset: 4px;
         background: var(--env-lining);
-        border-radius: 3px;
-        background-image: repeating-linear-gradient(
-          -45deg,
-          transparent,
-          transparent 6px,
-          color-mix(in srgb, var(--ink) 5%, transparent) 6px,
-          color-mix(in srgb, var(--ink) 5%, transparent) 12px
-        );
+        border-radius: 4px;
+        background-image:
+          radial-gradient(#ff9ebb 20%, transparent 21%),
+          radial-gradient(#ff9ebb 20%, transparent 21%);
+        background-size: 14px 14px;
+        background-position: 0 0, 7px 7px;
+        opacity: 0.7;
       }
 
       /* Letter card */
@@ -108,15 +108,15 @@ export default {
         width: 230px;
         height: 122px;
         background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 4px;
-        box-shadow: 0 2px 8px var(--seal-shadow);
+        border: 1.5px solid var(--card-border);
+        border-radius: 6px;
+        box-shadow: 0 3px 10px var(--seal-shadow);
         z-index: 2;
         transform: translateY(0);
         transition: transform 440ms cubic-bezier(0.34, 1.25, 0.64, 1) 180ms, z-index 0ms 220ms;
         display: flex;
         flex-direction: column;
-        padding: 8px 10px;
+        padding: 7px 10px;
         box-sizing: border-box;
       }
 
@@ -137,22 +137,28 @@ export default {
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px dashed var(--card-border);
-        padding-bottom: 4px;
-        margin-bottom: 6px;
+        padding-bottom: 3px;
+        margin-bottom: 5px;
         font-size: 9px;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        opacity: 0.75;
+        letter-spacing: 0.04em;
+        opacity: 0.85;
       }
 
       .postmark-badge {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
+        font-weight: 600;
+        color: #d81e4d;
       }
 
       .note-counter {
-        font-weight: 500;
+        font-weight: 600;
+        background: #ffe3ed;
+        color: #d81e4d;
+        padding: 1px 6px;
+        border-radius: 999px;
+        font-size: 8px;
       }
 
       .letter-body {
@@ -193,50 +199,52 @@ export default {
         font-size: 11px;
         line-height: 1.3;
         border: 1px solid var(--card-border);
-        background: color-mix(in srgb, var(--paper) 95%, transparent);
+        background: #fff6f9;
         color: var(--ink);
         padding: 4px 6px;
-        border-radius: 3px;
+        border-radius: 4px;
         box-sizing: border-box;
         outline: none;
       }
 
       .custom-input:focus {
-        border-color: var(--ink);
-        box-shadow: 0 0 0 1px var(--ink);
+        border-color: #ff4d79;
+        box-shadow: 0 0 0 1px #ff4d79;
       }
 
       .letter-actions {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: 4px;
+        padding-top: 3px;
         border-top: 1px dashed var(--card-border);
-        margin-top: 4px;
+        margin-top: 3px;
         gap: 4px;
       }
 
       .btn-action {
         border: 1px solid var(--card-border);
-        background: transparent;
+        background: #fff0f5;
         color: var(--ink);
         font: inherit;
         font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 2px;
+        font-weight: 500;
+        padding: 2px 7px;
+        border-radius: 999px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 3px;
-        transition: background-color 150ms ease;
+        transition: background-color 150ms ease, transform 150ms ease;
       }
 
       .btn-action:hover {
-        background: color-mix(in srgb, var(--ink) 10%, transparent);
+        background: #ffd6e5;
+        transform: translateY(-1px);
       }
 
       .btn-action:focus-visible {
-        outline: 2px solid var(--ink);
+        outline: 2px solid #ff4d79;
         outline-offset: 1px;
       }
 
@@ -255,18 +263,22 @@ export default {
       .flap-right { fill: var(--env-flap-side); }
       .flap-bottom { fill: var(--env-flap-bottom); }
 
-      /* Envelope front ornaments */
+      /* Cute Envelope front ornaments */
       .env-postmark {
         position: absolute;
-        top: 8px;
-        left: 10px;
+        top: 7px;
+        left: 9px;
         font-size: 7.5px;
-        letter-spacing: 0.06em;
-        opacity: 0.6;
-        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #d81e4d;
+        opacity: 0.85;
+        font-weight: 700;
         pointer-events: none;
         z-index: 4;
         transition: opacity 250ms ease;
+        display: flex;
+        align-items: center;
+        gap: 2px;
       }
 
       .env-stamp {
@@ -284,32 +296,34 @@ export default {
       .stamp-wavy {
         font-size: 8px;
         letter-spacing: 1px;
-        opacity: 0.4;
+        opacity: 0.45;
+        color: #d81e4d;
         font-family: monospace;
       }
 
       .stamp-badge {
-        width: 22px;
-        height: 25px;
-        background: color-mix(in srgb, var(--paper) 88%, var(--ink) 12%);
-        border: 1px dashed color-mix(in srgb, var(--ink) 35%, transparent);
-        border-radius: 2px;
+        width: 24px;
+        height: 27px;
+        background: #fff5f8;
+        border: 1.5px dashed #ff9ebb;
+        border-radius: 3px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 3px rgba(255, 100, 140, 0.15);
       }
 
       .stamp-icon {
-        font-size: 9px;
+        font-size: 11px;
         line-height: 1;
       }
 
       .stamp-denom {
-        font-size: 6.5px;
-        font-weight: 700;
-        opacity: 0.75;
+        font-size: 6px;
+        font-weight: 800;
+        color: #d81e4d;
+        letter-spacing: -0.02em;
       }
 
       /* Envelope front address & writing area */
@@ -336,18 +350,18 @@ export default {
         display: flex;
         align-items: center;
         gap: 4px;
-        background: color-mix(in srgb, var(--paper) 65%, transparent);
-        border-bottom: 1px dashed color-mix(in srgb, var(--ink) 25%, transparent);
-        padding: 1px 4px;
-        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.7);
+        border-bottom: 1px dashed #ff9ebb;
+        padding: 1px 5px;
+        border-radius: 3px;
       }
 
       .address-tag {
         font-size: 8px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        opacity: 0.65;
+        letter-spacing: 0.04em;
+        color: #d81e4d;
         flex-shrink: 0;
       }
 
@@ -368,24 +382,26 @@ export default {
 
       .env-to-input::placeholder,
       .env-note-input::placeholder {
-        color: color-mix(in srgb, var(--ink) 45%, transparent);
+        color: #ff9ebb;
         font-style: italic;
       }
 
       .env-to-input:focus,
       .env-note-input:focus {
-        background: color-mix(in srgb, var(--paper) 95%, transparent);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent);
-        border-radius: 1px;
+        background: #ffffff;
+        box-shadow: 0 0 0 1px #ff8ca6;
+        border-radius: 2px;
       }
 
       .env-hint {
-        font-size: 7.5px;
+        font-size: 8px;
         text-align: center;
-        opacity: 0.65;
+        color: #d81e4d;
+        opacity: 0.75;
         margin-top: 1px;
         letter-spacing: 0.03em;
         pointer-events: none;
+        font-weight: 500;
       }
 
       /* Top Flap */
@@ -423,67 +439,65 @@ export default {
         fill: var(--env-flap-top);
       }
 
-      /* Wax Seal */
+      /* Cute Wax Seal */
       .wax-seal {
         position: absolute;
-        bottom: -15px;
+        bottom: -16px;
         left: 50%;
         transform: translateX(-50%);
-        width: 34px;
-        height: 34px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 35%, #e65241, var(--seal-red) 70%, #942418);
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.35);
-        border: 0;
+        background: var(--seal-gradient);
+        box-shadow: 0 4px 10px rgba(220, 30, 80, 0.35), inset 0 1.5px 2px rgba(255, 255, 255, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.45);
         padding: 0;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #fff;
-        transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 180ms ease;
+        transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease;
         z-index: 6;
       }
 
       .wax-seal:hover {
-        transform: translateX(-50%) scale(1.08);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+        transform: translateX(-50%) scale(1.15) rotate(-6deg);
+        box-shadow: 0 6px 14px rgba(220, 30, 80, 0.45), inset 0 1.5px 2px rgba(255, 255, 255, 0.7);
       }
 
       .wax-seal:focus-visible {
-        outline: 2px solid var(--ink);
+        outline: 2px solid #ff4d79;
         outline-offset: 3px;
       }
 
       .seal-monogram {
-        font-family: "Faculty Glyphic", sans-serif;
-        font-size: 13px;
-        font-weight: bold;
-        letter-spacing: -0.05em;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        font-size: 16px;
+        line-height: 1;
+        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
       }
 
       .envelope.is-open .wax-seal {
         pointer-events: none;
       }
 
-      /* Floating heart bursts */
+      /* Cute Floating emoji burst */
       .sparkle {
         position: absolute;
         pointer-events: none;
-        font-size: 14px;
+        font-size: 16px;
         z-index: 10;
-        animation: float-up 750ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+        animation: float-up 850ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
       }
 
       @keyframes float-up {
         0% {
           opacity: 1;
-          transform: translate(0, 0) scale(0.6);
+          transform: translate(0, 0) scale(0.6) rotate(0deg);
         }
         100% {
           opacity: 0;
-          transform: translate(var(--tx), -50px) scale(1.2);
+          transform: translate(var(--tx), -55px) scale(1.25) rotate(var(--rot));
         }
       }
 
@@ -501,14 +515,14 @@ export default {
     scene.className = "scene";
 
     scene.innerHTML = `
-      <div class="envelope" role="region" aria-label="Interactive letter envelope">
+      <div class="envelope" role="region" aria-label="Cute interactive letter envelope">
         <div class="env-lining"></div>
 
         <div class="letter" aria-live="polite">
           <div class="letter-header">
             <div class="postmark-badge">
-              <span aria-hidden="true">✉</span>
-              <span>AIR MAIL • NYC</span>
+              <span aria-hidden="true">🎀</span>
+              <span>SWEET LETTER</span>
             </div>
             <span class="note-counter" aria-label="Note 1 of ${notes.length}">1/${notes.length}</span>
           </div>
@@ -516,7 +530,7 @@ export default {
           <div class="letter-body">
             <p class="note-text">${notes[0]}</p>
             <div class="custom-editor">
-              <textarea class="custom-input" placeholder="Write your note here..." maxlength="140" data-no-drag aria-label="Custom note message"></textarea>
+              <textarea class="custom-input" placeholder="Write your sweet note here..." maxlength="140" data-no-drag aria-label="Custom note message"></textarea>
             </div>
           </div>
 
@@ -528,7 +542,7 @@ export default {
               <span aria-hidden="true">✎</span> Write
             </button>
             <button type="button" class="btn-action btn-close" data-no-drag aria-label="Close and seal envelope">
-              Seal
+              <span aria-hidden="true">💌</span> Seal
             </button>
           </div>
         </div>
@@ -540,45 +554,45 @@ export default {
         </svg>
 
         <div class="env-postmark" aria-hidden="true">
-          <span>FROM: MINJU</span>
+          <span>♡ SWEET POST ☁️</span>
         </div>
 
         <div class="env-stamp" aria-hidden="true">
           <span class="stamp-wavy">≈≈</span>
           <div class="stamp-badge">
-            <span class="stamp-icon">💌</span>
-            <span class="stamp-denom">26¢</span>
+            <span class="stamp-icon">🍓</span>
+            <span class="stamp-denom">100% CUTE</span>
           </div>
         </div>
 
         <div class="env-address-card" data-no-drag>
           <div class="address-row to-row">
-            <label class="address-tag" for="env-to-field">To:</label>
+            <label class="address-tag" for="env-to-field">To: ♡</label>
             <input
               id="env-to-field"
               type="text"
               class="env-to-input"
               value="${savedTo.replace(/"/g, "&quot;")}"
-              placeholder="Recipient name..."
+              placeholder="Who is this for? ♡"
               maxlength="26"
               data-no-drag
               aria-label="Recipient on envelope"
             />
           </div>
           <div class="address-row note-row">
-            <label class="address-tag" for="env-note-field">Note:</label>
+            <label class="address-tag" for="env-note-field">Note: ✎</label>
             <input
               id="env-note-field"
               type="text"
               class="env-note-input"
               value="${savedEnvNote.replace(/"/g, "&quot;")}"
-              placeholder="Write on envelope..."
+              placeholder="Write a sweet note..."
               maxlength="30"
               data-no-drag
               aria-label="Note on envelope"
             />
           </div>
-          <div class="env-hint" aria-hidden="true">✦ Click seal to open ✦</div>
+          <div class="env-hint" aria-hidden="true">✦ Click 💌 seal to open ✦</div>
         </div>
 
         <div class="top-flap-container">
@@ -586,7 +600,7 @@ export default {
             <polygon points="0,0 125,78 250,0" class="flap-top" />
           </svg>
           <button type="button" class="wax-seal" data-no-drag aria-label="Open envelope">
-            <span class="seal-monogram">MJ</span>
+            <span class="seal-monogram" aria-hidden="true">💌</span>
           </button>
         </div>
       </div>
@@ -628,14 +642,16 @@ export default {
     setupEnvelopeInput(envNoteInput, "env_note");
 
     const createBurst = () => {
-      const symbols = ["✨", "💛", "✦", "💌", "✧"];
-      for (let i = 0; i < 5; i++) {
+      const symbols = ["🎀", "✨", "🌸", "💖", "🍓", "🧸", "☁️", "🌷", "🧁", "💌"];
+      for (let i = 0; i < 6; i++) {
         const sparkle = document.createElement("span");
         sparkle.className = "sparkle";
-        sparkle.textContent = symbols[i % symbols.length];
-        const tx = `${(Math.random() - 0.5) * 80}px`;
+        sparkle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        const tx = `${(Math.random() - 0.5) * 90}px`;
+        const rot = `${(Math.random() - 0.5) * 60}deg`;
         sparkle.style.setProperty("--tx", tx);
-        sparkle.style.left = `calc(50% + ${(Math.random() - 0.5) * 40}px)`;
+        sparkle.style.setProperty("--rot", rot);
+        sparkle.style.left = `calc(50% + ${(Math.random() - 0.5) * 50}px)`;
         sparkle.style.bottom = "60px";
         scene.append(sparkle);
         sparkle.addEventListener("animationend", () => sparkle.remove());
