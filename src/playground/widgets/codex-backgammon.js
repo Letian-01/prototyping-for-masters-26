@@ -15,14 +15,15 @@ const addChecker = (svg, x, y, fill, stroke) => {
     createSvg("circle", { cx: x - 2, cy: y - 2, r: 8.5, fill: "none", stroke, "stroke-width": 1, opacity: 0.55 }),
   );
   svg.append(checker);
+  return checker;
 };
 
-const addStack = (svg, index, count, side, fill, stroke) => {
-  const x = pointX(index) + 17.5;
-  Array.from({ length: count }, (_, stackIndex) => {
-    const y = side === "top" ? 31 + stackIndex * 19 : 239 - stackIndex * 19;
-    addChecker(svg, x, y, fill, stroke);
-  });
+const pointPosition = (point, stackIndex) => {
+  const top = point < 12;
+  return {
+    x: pointX(point % 12) + 17.5,
+    y: top ? 31 + stackIndex * 19 : 239 - stackIndex * 19,
+  };
 };
 
 const pipLocations = {
@@ -93,6 +94,24 @@ export default {
       }
       .board-die .board-pip { fill: #171a17; }
       .board-die.is-mint .die-highlight { stroke: #e9fffa; }
+      .board-point {
+        cursor: pointer;
+        transition: opacity 160ms ease, filter 160ms ease;
+      }
+      .board-point.is-available {
+        stroke: #f6ca4e;
+        stroke-width: 3;
+        filter: brightness(1.16);
+      }
+      .board-point.is-available:hover { opacity: 0.72; }
+      .checker { cursor: pointer; }
+      .checker.is-selected {
+        filter: drop-shadow(0 0 3px #f6ca4e);
+      }
+      .checker:focus-visible {
+        filter: drop-shadow(0 0 4px #f6ca4e);
+        outline: none;
+      }
       button {
         padding: 0.5rem 0.65rem;
         border: 1px solid #241d17;
@@ -108,6 +127,10 @@ export default {
       }
       button:hover { background: #d55b25; }
       button:active { transform: translateY(1px) rotate(-2deg); }
+      button:disabled {
+        opacity: 0.52;
+        cursor: not-allowed;
+      }
       button:focus-visible { outline: 2px solid #241d17; outline-offset: 3px; }
       output {
         min-width: 5.7rem;
@@ -133,7 +156,7 @@ export default {
       <svg viewBox="0 0 480 260" role="img" aria-label="A backgammon board with checkers in play"></svg>
       <div class="dice-tray">
         <button type="button">Roll dice</button>
-        <output aria-live="polite">Your turn.<br>Roll the dice.</output>
+        <output aria-live="polite">Roll, select a cream checker,<br>then choose a highlighted pip.</output>
       </div>
     `;
 
@@ -145,29 +168,38 @@ export default {
     );
 
     const pointColors = ["#153f43", "#d65825", "#78a9a7", "#9b622d", "#153f43", "#e17d34"];
+    const points = new Map();
     Array.from({ length: 12 }, (_, index) => {
       const x = pointX(index);
-      const color = pointColors[index % pointColors.length];
-      board.append(
-        createSvg("path", { d: `M ${x} 16 H ${x + 35} L ${x + 17.5} 113 Z`, fill: color }),
-        createSvg("path", { d: `M ${x} 244 H ${x + 35} L ${x + 17.5} 147 Z`, fill: pointColors[(index + 3) % pointColors.length] }),
-      );
+      const topPoint = createSvg("path", {
+        class: "board-point", d: `M ${x} 16 H ${x + 35} L ${x + 17.5} 113 Z`, fill: pointColors[index % pointColors.length],
+      });
+      const bottomPoint = createSvg("path", {
+        class: "board-point", d: `M ${x} 244 H ${x + 35} L ${x + 17.5} 147 Z`, fill: pointColors[(index + 3) % pointColors.length],
+      });
+      points.set(index, topPoint);
+      points.set(index + 12, bottomPoint);
+      board.append(topPoint, bottomPoint);
     });
 
-    // A classic opening arrangement, reduced to the stacks that read clearly at widget scale.
-    addStack(board, 0, 2, "top", "#f7efd9", "#aa783b");
-    addStack(board, 4, 3, "top", "#153f43", "#0d2d30");
-    addStack(board, 7, 5, "top", "#153f43", "#0d2d30");
-    addStack(board, 11, 5, "top", "#f7efd9", "#aa783b");
-    addStack(board, 0, 5, "bottom", "#153f43", "#0d2d30");
-    addStack(board, 5, 5, "bottom", "#153f43", "#0d2d30");
-    addStack(board, 6, 3, "bottom", "#f7efd9", "#aa783b");
-    addStack(board, 10, 2, "bottom", "#f7efd9", "#aa783b");
-
+    const piecesLayer = createSvg("g", { "aria-label": "Move the cream checkers" });
     const diceLayer = createSvg("g", { "aria-hidden": "true" });
-    board.append(diceLayer);
+    board.append(piecesLayer, diceLayer);
     const output = game.querySelector("output");
     const button = game.querySelector("button");
+    let nextPieceId = 0;
+    const makePieces = (color, point, count) => Array.from({ length: count }, () => ({
+      id: nextPieceId += 1, color, point,
+    }));
+    // Cream checkers move clockwise around the board. Dark checkers are the practice opponent.
+    const pieces = [
+      ...makePieces("cream", 0, 2), ...makePieces("teal", 4, 3),
+      ...makePieces("teal", 7, 5), ...makePieces("cream", 11, 5),
+      ...makePieces("teal", 12, 5), ...makePieces("teal", 17, 2),
+      ...makePieces("cream", 18, 3), ...makePieces("cream", 22, 5),
+    ];
+    let selectedPiece = null;
+    let remainingDice = [];
     const throwSpots = [
       { x: 194, y: 129, tossX: -102, tossY: -64 },
       { x: 278, y: 132, tossX: 102, tossY: -76 },
@@ -193,15 +225,104 @@ export default {
       position.append(die);
       return position;
     };
+    const getMoves = (piece) => remainingDice.map((die) => ({
+      die,
+      destination: (piece.point + die) % 24,
+    }));
+    const render = () => {
+      piecesLayer.replaceChildren();
+      const stacks = new Map();
+      pieces.forEach((piece) => {
+        const stack = stacks.get(piece.point) ?? [];
+        stack.push(piece);
+        stacks.set(piece.point, stack);
+      });
+      stacks.forEach((stack, point) => {
+        stack.forEach((piece, stackIndex) => {
+          const { x, y } = pointPosition(point, stackIndex);
+          const checker = addChecker(
+            piecesLayer,
+            x,
+            y,
+            piece.color === "cream" ? "#f7efd9" : "#153f43",
+            piece.color === "cream" ? "#aa783b" : "#0d2d30",
+          );
+          checker.classList.add("checker");
+          if (piece === selectedPiece) checker.classList.add("is-selected");
+          checker.setAttribute("role", "button");
+          checker.setAttribute("tabindex", "0");
+          checker.setAttribute("aria-label", `${piece.color === "cream" ? "Cream" : "Dark"} checker on pip ${point + 1}`);
+          const select = () => {
+            if (piece.color !== "cream") {
+              output.innerHTML = "This is a cream-checker turn.<br>Select a cream checker.";
+              return;
+            }
+            if (remainingDice.length === 0) {
+              output.innerHTML = "Roll the dice first.<br>Then choose a cream checker.";
+              return;
+            }
+            selectedPiece = piece;
+            const moves = getMoves(piece).map(({ die }) => `+${die}`).join(" or ");
+            output.innerHTML = `Choose a highlighted pip:<br>${moves} spaces ahead.`;
+            render();
+          };
+          checker.addEventListener("click", select);
+          checker.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              select();
+            }
+          });
+        });
+      });
+
+      const moves = selectedPiece ? getMoves(selectedPiece) : [];
+      points.forEach((point, index) => {
+        const move = moves.find(({ destination }) => destination === index);
+        point.classList.toggle("is-available", Boolean(move));
+        point.setAttribute("tabindex", move ? "0" : "-1");
+        point.setAttribute("role", move ? "button" : "presentation");
+        point.setAttribute("aria-label", move ? `Move selected checker ${move.die} spaces to pip ${index + 1}` : "");
+      });
+    };
+    const moveSelectedPiece = (destination) => {
+      if (!selectedPiece) return;
+      const move = getMoves(selectedPiece).find((candidate) => candidate.destination === destination);
+      if (!move) return;
+      selectedPiece.point = destination;
+      remainingDice.splice(remainingDice.indexOf(move.die), 1);
+      selectedPiece = null;
+      if (remainingDice.length === 0) {
+        button.disabled = false;
+        output.innerHTML = "Nice move. Roll again<br>for the next turn.";
+      } else {
+        output.innerHTML = `${remainingDice.length} ${remainingDice.length === 1 ? "die" : "dice"} left.<br>Select another cream checker.`;
+      }
+      render();
+    };
+    points.forEach((point, index) => {
+      point.addEventListener("click", () => moveSelectedPiece(index));
+      point.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          moveSelectedPiece(index);
+        }
+      });
+    });
     const rollDice = () => {
+      if (remainingDice.length) return;
       const values = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
       diceLayer.replaceChildren(...values.map(makeDie));
+      remainingDice = values[0] === values[1] ? [values[0], values[0], values[0], values[0]] : values;
+      button.disabled = true;
       output.innerHTML = values[0] === values[1]
-        ? `Doubles: ${values[0]} + ${values[1]}<br>Make a move.`
-        : `You rolled ${values[0]} + ${values[1]}.<br>Make a move.`;
+        ? `Doubles: ${values[0]} + ${values[1]}.<br>Select a cream checker.`
+        : `You rolled ${values[0]} + ${values[1]}.<br>Select a cream checker.`;
+      render();
     };
 
     button.addEventListener("click", rollDice);
+    render();
     root.append(style, game);
   },
 };
