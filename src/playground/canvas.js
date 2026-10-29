@@ -2,6 +2,9 @@ import { mastheadMarkup } from "../masthead.js";
 
 const MIN_SCALE = 0.25;
 const MAX_SCALE = 2.5;
+const ZOOM_WHEEL = 0.004;
+const ZOOM_STEP = 1.5;
+const PAN_STEP = 96;
 const DEFAULT_WIDTH = 320;
 const DEFAULT_HEIGHT = 220;
 const GRID = 28;
@@ -226,6 +229,8 @@ export function mountPlayground(app, widgets) {
   let dragging = false;
   let lastPointerX = 0;
   let lastPointerY = 0;
+  let viewportRect = null;
+  let chromeFrame = 0;
 
   widgets.forEach((widget, index) => {
     const article = mountWidget(widget, placed[index]);
@@ -233,8 +238,16 @@ export function mountPlayground(app, widgets) {
     world.append(article);
   });
 
-  const render = () => {
-    world.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+  const measureViewport = () => {
+    viewportRect = viewport.getBoundingClientRect();
+    return viewportRect;
+  };
+
+  const applyTransform = () => {
+    world.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+  };
+
+  const syncChrome = () => {
     let gridSize = GRID * scale;
     while (gridSize < 18) gridSize *= 2;
     viewport.style.backgroundSize = `${gridSize}px ${gridSize}px`;
@@ -243,22 +256,39 @@ export function mountPlayground(app, widgets) {
     zoomInButton.disabled = scale >= MAX_SCALE - 0.0001;
   };
 
-  const zoomAt = (clientX, clientY, nextScale) => {
+  const render = ({ chrome = "defer" } = {}) => {
+    applyTransform();
+    if (chrome === "now") {
+      if (chromeFrame) {
+        cancelAnimationFrame(chromeFrame);
+        chromeFrame = 0;
+      }
+      syncChrome();
+      return;
+    }
+    if (chromeFrame) return;
+    chromeFrame = requestAnimationFrame(() => {
+      chromeFrame = 0;
+      syncChrome();
+    });
+  };
+
+  const zoomAt = (clientX, clientY, nextScale, chrome) => {
     const next = clamp(nextScale, MIN_SCALE, MAX_SCALE);
     if (next === scale) return;
-    const rect = viewport.getBoundingClientRect();
+    const rect = viewportRect || measureViewport();
     const px = clientX - rect.left;
     const py = clientY - rect.top;
     const ratio = next / scale;
     x = px - (px - x) * ratio;
     y = py - (py - y) * ratio;
     scale = next;
-    render();
+    render({ chrome: chrome ?? "defer" });
   };
 
   const zoomBy = (factor) => {
-    const rect = viewport.getBoundingClientRect();
-    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, scale * factor);
+    const rect = viewportRect || measureViewport();
+    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, scale * factor, "now");
   };
 
   const fitView = () => {
@@ -266,7 +296,7 @@ export function mountPlayground(app, widgets) {
       x = 0;
       y = 0;
       scale = 1;
-      render();
+      render({ chrome: "now" });
       return;
     }
     const minX = Math.min(...placed.map((widget) => widget.x));
@@ -279,9 +309,12 @@ export function mountPlayground(app, widgets) {
     const viewW = Math.max(viewport.clientWidth - pad * 2, 1);
     const viewH = Math.max(viewport.clientHeight - pad * 2, 1);
     scale = clamp(Math.min(viewW / boundsW, viewH / boundsH, 1), MIN_SCALE, MAX_SCALE);
+    x = boundsW * scale > viewW ? pad - minX * scale : (viewport.clientWidth - boundsW * scale) / 2 - minX * scale;
+    y = boundsH * scale > viewH ? pad - minY * scale : (viewport.clientHeight - boundsH * scale) / 2 - minY * scale;
+    render();
     x = (viewport.clientWidth - boundsW * scale) / 2 - minX * scale;
     y = (viewport.clientHeight - boundsH * scale) / 2 - minY * scale;
-    render();
+    render({ chrome: "now" });
   };
 
   const widgetCanScroll = (target) => {
@@ -290,12 +323,12 @@ export function mountPlayground(app, widgets) {
   };
 
   viewport.addEventListener("wheel", (event) => {
-    if (widgetCanScroll(event.target)) return;
+    if (event.target.closest?.(".widget") && widgetCanScroll(event.target)) return;
     event.preventDefault();
     const line = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientHeight : 1;
     const delta = event.deltaY * line;
     if (delta === 0) return;
-    zoomAt(event.clientX, event.clientY, scale * Math.exp(-delta * 0.0015));
+    zoomAt(event.clientX, event.clientY, scale * Math.exp(-delta * ZOOM_WHEEL));
   }, { passive: false });
 
   viewport.addEventListener("pointerdown", (event) => {
@@ -318,29 +351,33 @@ export function mountPlayground(app, widgets) {
   });
 
   const endPan = () => {
+    if (!dragging) return;
     dragging = false;
     viewport.classList.remove("is-panning");
+    render({ chrome: "now" });
   };
   viewport.addEventListener("pointerup", endPan);
   viewport.addEventListener("pointercancel", endPan);
 
-  zoomOutButton.addEventListener("click", () => zoomBy(1 / 1.2));
-  zoomInButton.addEventListener("click", () => zoomBy(1.2));
+  zoomOutButton.addEventListener("click", () => zoomBy(1 / ZOOM_STEP));
+  zoomInButton.addEventListener("click", () => zoomBy(ZOOM_STEP));
   resetButton.addEventListener("click", fitView);
+  window.addEventListener("resize", () => {
+    viewportRect = null;
+  });
 
   window.addEventListener("keydown", (event) => {
     if (event.target.closest?.(".widget")) return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;
-    const step = 48;
-    if (event.key === "ArrowLeft") x += step;
-    else if (event.key === "ArrowRight") x -= step;
-    else if (event.key === "ArrowUp") y += step;
-    else if (event.key === "ArrowDown") y -= step;
-    else if (event.key === "+" || event.key === "=") zoomBy(1.2);
-    else if (event.key === "-" || event.key === "_") zoomBy(1 / 1.2);
+    if (event.key === "ArrowLeft") x += PAN_STEP;
+    else if (event.key === "ArrowRight") x -= PAN_STEP;
+    else if (event.key === "ArrowUp") y += PAN_STEP;
+    else if (event.key === "ArrowDown") y -= PAN_STEP;
+    else if (event.key === "+" || event.key === "=") zoomBy(ZOOM_STEP);
+    else if (event.key === "-" || event.key === "_") zoomBy(1 / ZOOM_STEP);
     else return;
     event.preventDefault();
-    if (event.key.startsWith("Arrow")) render();
+    if (event.key.startsWith("Arrow")) render({ chrome: "now" });
   });
 
   fitView();
